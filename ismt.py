@@ -7,7 +7,7 @@ from enum import Enum
 # We want to:
 #   (1) Resolve operating limit constraints
 #   (2) Ensure connections are well-defined
-#       a) Both left and right port exist 
+#       a) Both left and right port exist
 #       b) 1 port is the source and 1 port is the sink
 #   (3) Possibly handle ambiguous / unassigned variables?
 
@@ -19,7 +19,7 @@ class PortType(Enum):
     SOURCE = 2
 
 class Port:
-    def __init__(self, min_val:CircuitVal, max_val:CircuitVal, port_type:PortType, 
+    def __init__(self, min_val:CircuitVal, max_val:CircuitVal, port_type:PortType,
                     preset_value:Optional[CircuitVal] = None):
         # assert min_val < max_val?
         self.min_val = min_val
@@ -52,21 +52,26 @@ class Connection:
 
 #@TODO REDO THIS
 def intervals_overlap(lp: Port, rp: Port) -> Bool:
-    current_overlap:bool = lp.min_val.current <= rp.max_val.current and rp.min_val.current <= lp.min_val.current
-    voltage_overlap:bool = lp.min_val.voltage <= rp.max_val.voltage and rp.min_val.voltage <= lp.min_val.voltage
+    current = Real('current')
+    voltage = Real('voltage')
 
-    return current_overlap and voltage_overlap
+    s = Solver()
 
-def make_constraint_from_connection(connection : Connection) -> z3.Bool:  
+    s.add(current >= lp.min_val.current, current >= rp.min_val.current, current <= lp.max_val.current, current <= rp.max_val.current)
+    s.add(voltage >= lp.min_val.voltage, voltage >= rp.min_val.voltage, voltage <= lp.max_val.voltage, current <= rp.max_val.voltage)
+
+    return s.check() == sat
+
+def make_constraint_from_connection(connection : Connection) -> z3.Bool:
     '''
     Given a connection, make a set of z3 constraints.
     Enforce the following:
         a) circuit_val_constraint := circuit limits have overlap
         b) 1 port, 1 sink
-        c) if assigned_val, then check if it works 
+        c) if assigned_val, then check if it works
 
     Examples:
-        
+
     '''
     left_port = connection.left_port
     right_port = connection.right_port
