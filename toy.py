@@ -3,14 +3,14 @@ import random
 
 
 ################################################
-## Simulated Annealing 
+## Simulated Annealing
 
 # energy function E(state) :: Int
-#   - fitness function 
+#   - fitness function
 #   - (lower is better)
 
 # acceptance probability function P(e, e_new, temp)
-#   - probability of choosing new state 
+#   - probability of choosing new state
 
 # annealing schedule --> how you pick neighbors
 
@@ -18,7 +18,7 @@ import random
 # For k = 0 through kmax (exclusive): (number of steps)
     # T ← temperature( (k+1)/kmax )
     # Pick a random neighbour, snew ← neighbour(s)
-    # If P(E(s), E(snew), T) ≥ random(0, 1): 
+    # If P(E(s), E(snew), T) ≥ random(0, 1):
         # s ← snew
 # Output: the final state s
 
@@ -59,8 +59,7 @@ def simulated_annealing(start_state, num_iterations):
     curr_cost = energy_function(curr_soln)
 
     for i in range(1, num_iterations + 1):
-        temperature = i / num_iterations
-
+        temperature = num_iterations / i
         new_state = get_neighbor(start_state, temperature)
         new_cost = energy_function(new_state)
 
