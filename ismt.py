@@ -50,7 +50,6 @@ class Connection:
     def __str__(self):
         return str(self.cid) + ":" + str(self.left_port) + ", " + str(self.right_port)
 
-#@TODO REDO THIS
 def intervals_overlap(lp: Port, rp: Port) -> Bool:
     current = Real('current')
     voltage = Real('voltage')
@@ -76,7 +75,6 @@ def make_constraint_from_connection(connection : Connection) -> z3.Bool:
     left_port = connection.left_port
     right_port = connection.right_port
 
-    # (Source) -> https://nedbatchelder.com/blog/201310/range_overlap_in_two_compares.html
     overlap_constraint : bool = intervals_overlap(left_port, right_port)
     port_sink_constraint : bool = connection.valid_source_sink()
 
