@@ -1,0 +1,6 @@
+TODO:
+-> Test if swapping out parts / ports in get_neighbor() works
+    -> Do part_library with different footprints for different parts
+
+-> Add SATing
+    -> Fix some bug

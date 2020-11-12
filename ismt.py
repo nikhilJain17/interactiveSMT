@@ -3,6 +3,7 @@ from typing import *
 from z3 import *
 from enum import Enum
 
+
 # Simple circuit constraint satisfaction using Z3 solver
 # We want to:
 #   (1) Resolve operating limit constraints
@@ -19,16 +20,17 @@ class PortType(Enum):
     SOURCE = 2
 
 class Port:
-    def __init__(self, min_val:CircuitVal, max_val:CircuitVal, port_type:PortType,
+    def __init__(self, name:str, min_val:CircuitVal, max_val:CircuitVal, port_type:PortType,
                     preset_value:Optional[CircuitVal] = None):
         # assert min_val < max_val?
+        self.name = name
         self.min_val = min_val
         self.max_val = max_val
         self.port_type = port_type
         self.preset_value = preset_value
 
     def __str__(self):
-        return "[min:" + str(self.min_val) + ", max:" + str(self.max_val) + "]"
+        return "[min:(" + str(self.min_val) + ", max:" + str(self.max_val) + "]"
 
 class Connection:
     def __init__(self, cid:int, left_port:Port, right_port:Port):
@@ -48,7 +50,9 @@ class Connection:
             return right_to_left ^ left_to_right
 
     def __str__(self):
-        return str(self.cid) + ":" + str(self.left_port) + ", " + str(self.right_port)
+        return str(self.cid) + " = {\n"             \
+            + "  l:" + str(self.left_port) + "\n"   \
+            + "  r:" + str(self.right_port)
 
 def intervals_overlap(lp: Port, rp: Port) -> Bool:
     current = Real('current')
@@ -80,9 +84,50 @@ def make_constraint_from_connection(connection : Connection) -> z3.Bool:
 
     return (overlap_constraint) and (port_sink_constraint)
 
-def design_is_sat(design : List[Connection]) -> bool:
-    '''
-    Given a design as a list of connections, sat it
-    '''
-    constraints = map(make_constraint_from_connection, design)
-    return all(constraints)
+class PartType(Enum):
+    POWER_SUPPLY = 0
+    MICROCONTROLLER = 1
+    POWER_CONVERTER = 2
+
+class Part:
+    def __init__(self, name:str, cost:int, footprint, part_type:PartType):
+        self.cost = cost
+        self.footprint = footprint # map :: str -> port
+        self.part_type = part_type
+        self.name = name
+
+    def get_cost(self) -> int:
+        return self.cost
+
+    def __str__(self):
+        ans = self.name + " = { \n" \
+                + "   type = " + str(self.part_type) + "\n" \
+                + "   cost = " + str(self.cost) + "\n" \
+                + "   footprint = TODO" + "\n" \
+                + "}"
+        return ans
+
+class Circuit:
+    def __init__(self, parts: List[Part], connections: List[Connection]):
+        self.parts = parts
+        self.connections = connections
+
+    def get_parts(self):
+        return self.parts
+
+    def __str__(self):
+        result =  " ________________\n"
+        result += "| (Parts)        |\n" 
+        result += " ––––––––––––––––\n"
+        for p in self.parts:
+            result += str(p) + "\n"
+        result += " ––––––––––––––––\n"
+        result += "| (Connections)  |\n"
+        result += " ––––––––––––––––\n"
+        for c in self.connections:
+            result += str(c) + "\n"
+        return result
+
+    def is_sat(self) -> bool:
+        constraints = map(make_constraint_from_connection, self.connections)
+        return all(constraints)
