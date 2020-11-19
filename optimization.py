@@ -83,7 +83,7 @@ def get_neighbor(circuit:Circuit, temperature:int):
 
         # check for sat TODO FIX
         print(new_circuit.is_sat())
-        is_sat = (new_circuit.is_sat()) or (terminate < 0)
+        is_sat = (new_circuit.is_sat()) and (terminate > 0)
 
     return new_circuit
 
